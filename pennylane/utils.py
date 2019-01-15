@@ -54,6 +54,7 @@ def _flatten(x):
     Yields:
         other: elements of x in depth-first order
     """
+    print("_flatten("+str(x)+")")
     if isinstance(x, np.ndarray):
         yield from _flatten(x.flat)  # should we allow object arrays? or just "yield from x.flat"?
     elif isinstance(x, collections.Iterable) and not isinstance(x, (str, bytes)):
@@ -76,6 +77,7 @@ def _unflatten(flat, model):
         (other, array): first elements of flat arranged into the nested
         structure of model, unused elements of flat
     """
+    print("_unflatten("+str(flat)+", "+str(model)+")")
     if isinstance(model, np.ndarray):
         idx = model.size
         res = np.array(flat)[:idx].reshape(model.shape)

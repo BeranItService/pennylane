@@ -24,27 +24,62 @@ from autograd import numpy as np
 
 from defaults import pennylane as qml, BaseTest
 
-from pennylane.qnode import _flatten, unflatten
+from pennylane.utils import _flatten, _unflatten, unflatten
 
-a = np.linspace(-1,1,64)
+a = np.linspace(-1, 1, 64)
 a_shapes = [(64,),
-            (64,1),
-            (32,2),
-            (16,4),
-            (8,8),
-            (16,2,2),
-            (8,2,2,2),
-            (4,2,2,2,2),
-            (2,2,2,2,2,2)]
+            (64, 1),
+            (32, 2),
+            (16, 4),
+            (8, 8),
+            (16, 2, 2),
+            (8, 2, 2, 2),
+            (4, 2, 2, 2, 2),
+            (2, 2, 2, 2, 2, 2)]
 
 b = np.linspace(-1., 1., 8)
-b_shapes = [(8,), (8,1), (4,2), (2,2,2), (2,1,2,1,2)]
+b_shapes = [(8,), (8, 1), (4, 2), (2, 2, 2), (2, 1, 2, 1, 2)]
 
 
 class FlattenTest(BaseTest):
     """Tests flatten and unflatten.
     """
-    def test_flatten(self):
+    def test_depth_first(self):
+        self.assertEqual(list(_flatten([[1, 2, [3, 4]], 5])), [1, 2, 3, 4, 5])
+        self.assertEqual(list(_unflatten([1, 2, 3, 4, 5], [[1, 2, [3, 4]], 5])), [[1, 2, [3, 4]], 5])
+
+    def test_flatten_list(self):
+        "Tests that _flatten successfully flattens multidimensional arrays."
+        self.logTestName()
+        flat = a
+        for s in a_shapes:
+            reshaped = list(np.reshape(flat, s))
+            flattened = np.array([x for x in _flatten(reshaped)])
+
+            self.assertEqual(flattened.shape, flat.shape)
+            self.assertAllEqual(flattened, flat)
+
+
+    def test_unflatten_list(self):
+        "Tests that _unflatten successfully unflattens multidimensional arrays."
+        self.logTestName()
+        flat = a
+        for s in a_shapes:
+            reshaped = list(np.reshape(flat, s))
+            unflattened = np.array([x for x in unflatten(flat, reshaped)])
+
+            self.assertEqual(unflattened.shape, np.array(reshaped).shape)
+            self.assertAllEqual(unflattened, reshaped)
+
+        with self.assertRaisesRegex(TypeError, 'Unsupported type in the model'):
+            model = lambda x: x # not a valid model for unflatten
+            unflatten(flat, model)
+
+        with self.assertRaisesRegex(ValueError, 'Flattened iterable has more elements than the model'):
+            unflatten(np.concatenate([flat, flat]), reshaped)
+
+
+    def test_flatten_np_array(self):
         "Tests that _flatten successfully flattens multidimensional arrays."
         self.logTestName()
         flat = a
@@ -56,7 +91,7 @@ class FlattenTest(BaseTest):
             self.assertAllEqual(flattened, flat)
 
 
-    def test_unflatten(self):
+    def test_unflatten_np_array(self):
         "Tests that _unflatten successfully unflattens multidimensional arrays."
         self.logTestName()
         flat = a
