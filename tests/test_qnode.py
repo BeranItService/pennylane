@@ -24,7 +24,7 @@ from autograd import numpy as np
 
 from defaults import pennylane as qml, BaseTest
 
-from pennylane.qnode import _flatten, unflatten, QNode, QuantumFunctionError
+from pennylane.qnode import QNode, QuantumFunctionError
 from pennylane.plugins.default_qubit import CNOT, Rotx, Roty, Rotz, I, Y, Z
 from pennylane._device import DeviceError
 
@@ -35,17 +35,6 @@ def expZ(state):
 
 thetas = np.linspace(-2*np.pi, 2*np.pi, 7)
 
-a = np.linspace(-1,1,64)
-a_shapes = [(64,),
-            (64,1),
-            (32,2),
-            (16,4),
-            (8,8),
-            (16,2,2),
-            (8,2,2,2),
-            (4,2,2,2,2),
-            (2,2,2,2,2,2)]
-
 b = np.linspace(-1., 1., 8)
 b_shapes = [(8,), (8,1), (4,2), (2,2,2), (2,1,2,1,2)]
 
@@ -55,37 +44,6 @@ class BasicTest(BaseTest):
     def setUp(self):
         self.dev1 = qml.device('default.qubit', wires=1)
         self.dev2 = qml.device('default.qubit', wires=2)
-
-    def test_flatten(self):
-        "Tests that _flatten successfully flattens multidimensional arrays."
-        self.logTestName()
-        flat = a
-        for s in a_shapes:
-            reshaped = np.reshape(flat, s)
-            flattened = np.array([x for x in _flatten(reshaped)])
-
-            self.assertEqual(flattened.shape, flat.shape)
-            self.assertAllEqual(flattened, flat)
-
-
-    def test_unflatten(self):
-        "Tests that _unflatten successfully unflattens multidimensional arrays."
-        self.logTestName()
-        flat = a
-        for s in a_shapes:
-            reshaped = np.reshape(flat, s)
-            unflattened = np.array([x for x in unflatten(flat, reshaped)])
-
-            self.assertEqual(unflattened.shape, reshaped.shape)
-            self.assertAllEqual(unflattened, reshaped)
-
-        with self.assertRaisesRegex(TypeError, 'Unsupported type in the model'):
-            model = lambda x: x # not a valid model for unflatten
-            unflatten(flat, model)
-
-        with self.assertRaisesRegex(ValueError, 'Flattened iterable has more elements than the model'):
-            unflatten(np.concatenate([flat, flat]), reshaped)
-
 
     def test_op_successors(self):
         "Tests QNode._op_successors()."
