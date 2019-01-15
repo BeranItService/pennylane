@@ -45,32 +45,41 @@ b_shapes = [(8,), (8, 1), (4, 2), (2, 2, 2), (2, 1, 2, 1, 2)]
 class FlattenTest(BaseTest):
     """Tests flatten and unflatten.
     """
-    def test_depth_first_ragged_list(self):
-        r = list(range(5))
-        a = [[0, 1, [2, 3]], 4]
-        self.assertEqual(list(flatten(a)), r)
-        self.assertEqual(list(unflatten(r, a)), a)
-
-    def test_depth_first_ragged_np_array(self):
-        r = np.array(range(5))
-        a = np.array([np.array([0, 1, np.array([2, 3], dtype=object)], dtype=object), 4], dtype=object)
-        self.assertAllEqual(list(flatten(a)), list(r))
-        a_unflattened = unflatten(r, a)
-
-        #numpy cannot compare jagged arrays with np.all() so we code something recursive ourselves
-        def recursive_np_array_equal(a, b):
+    def mixed_iterable_equal(self, a, b):
+        """We need a way of comparing nested mixed iterables that also
+        checks that the types of sub-itreables match and that those
+        of the elements compare to equal. This method does that.
+        """
+        print("called with ("+str(a)+", "+str(b)+") of types "+str(type(a))+", "+str(type(b)))
+        if isinstance(a, collections.Iterable):
             if type(a) != type(b):
                 return False
             a_len = a.size if isinstance(a, np.ndarray) else len(a)
             b_len = b.size if isinstance(b, np.ndarray) else len(b)
             if a_len != b_len:
                 return False
-            if isinstance(a, collections.Iterable) and a_len > 1:
-                return np.all([recursive_np_array_equal(a[i], b[i]) for i in range(a_len)])
+            if a_len > 1:
+                return np.all([self.mixed_iterable_equal(a[i], b[i]) for i in range(a_len)])
 
-            return a == b
+        return a == b
 
-        assert(recursive_np_array_equal(unflatten(r, a), a))
+
+    def test_depth_first_jagged_list(self):
+        r = list(range(5))
+        a = [[0, 1, [2, 3]], 4]
+        self.assertEqual(list(flatten(a)), r)
+        self.assertEqual(list(unflatten(r, a)), a)
+        #assert(self.mixed_iterable_equal(flatten(a), r))
+        assert(self.mixed_iterable_equal(unflatten(r, a), a))
+
+    def test_depth_first_jagged_mixed(self):
+        r = np.array(range(9))
+        a = [np.array([np.array([0]), np.array([1, 2, 3]), np.array([4, 5])]), 6, np.array([7, 8])]
+        assert(self.mixed_iterable_equal(list(flatten(a)), list(r)))
+
+        a_unflattened = unflatten(r, a)
+
+        assert(self.mixed_iterable_equal(a_unflattened, a))
 
 
     def test_flatten_list(self):

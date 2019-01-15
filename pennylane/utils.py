@@ -55,7 +55,7 @@ def flatten(x):
         other: elements of x in depth-first order
     """
     if isinstance(x, np.ndarray):
-        yield from flatten(x.flat)  # should we allow object arrays? or just "yield from x.flat"?
+        yield from flatten(x.flat)
     elif isinstance(x, collections.Iterable) and not isinstance(x, (str, bytes)):
         for item in x:
             yield from flatten(item)
@@ -86,10 +86,10 @@ def _unflatten(flat, model):
             val, flat = _unflatten(flat, x)
             res.append(val)
         if isinstance(model, np.ndarray):
-            res = np.array(res, dtype=model.dtype)
+            res = np.array(res)
         return res, flat
     elif isinstance(model, (numbers.Number, Variable)):
-        return flat[0], flat[1:]
+        return flat[0] if isinstance(model, Variable) or isinstance(flat[0], Variable) else type(model)(flat[0]), flat[1:]
     else:
         raise TypeError('Unsupported type in the model: {}'.format(type(model)))
 
