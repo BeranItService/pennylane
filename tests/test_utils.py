@@ -14,7 +14,7 @@
 """
 Unit tests for the :mod:`pennylane.utils` sub-module.
 """
-
+import types
 import unittest
 import logging as log
 log.getLogger('defaults')
@@ -50,8 +50,12 @@ class FlattenTest(BaseTest):
         checks that the types of sub-itreables match and that those
         of the elements compare to equal. This method does that.
         """
-        print("called with ("+str(a)+", "+str(b)+") of types "+str(type(a))+", "+str(type(b)))
-        if isinstance(a, collections.Iterable):
+        print("called with ("+str(a)+", "+str(b)+") of types "+str(type(a))+("!=" if type(a) != type(b) else "=")+str(type(b)))
+        if isinstance(a, types.GeneratorType):
+            a = list(a)
+        if isinstance(b, types.GeneratorType):
+            b = list(b)
+        if isinstance(a, collections.Iterable) or isinstance(b, collections.Iterable):
             if type(a) != type(b):
                 return False
             a_len = a.size if isinstance(a, np.ndarray) else len(a)
@@ -69,7 +73,7 @@ class FlattenTest(BaseTest):
         a = [[0, 1, [2, 3]], 4]
         self.assertEqual(list(flatten(a)), r)
         self.assertEqual(list(unflatten(r, a)), a)
-        #assert(self.mixed_iterable_equal(flatten(a), r))
+        assert(self.mixed_iterable_equal(flatten(a), r))#flatten() returns a generator here and this is what we want
         assert(self.mixed_iterable_equal(unflatten(r, a), a))
 
     def test_depth_first_jagged_mixed(self):
