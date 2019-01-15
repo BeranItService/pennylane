@@ -82,7 +82,6 @@ class FlattenTest(BaseTest):
         assert(self.mixed_iterable_equal(list(flatten(a)), list(r)))
 
         a_unflattened = unflatten(r, a)
-
         assert(self.mixed_iterable_equal(a_unflattened, a))
 
 
