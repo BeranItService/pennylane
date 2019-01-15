@@ -14,7 +14,7 @@
 """Adam optimizer"""
 
 import autograd.numpy as np
-from pennylane.utils import _flatten, unflatten
+from pennylane.utils import flatten, unflatten
 from .gradient_descent import GradientDescentOptimizer
 
 
@@ -76,8 +76,8 @@ class AdamOptimizer(GradientDescentOptimizer):
 
         self.t += 1
 
-        grad_flat = list(_flatten(grad))
-        x_flat = _flatten(x)
+        grad_flat = list(flatten(grad))
+        x_flat = flatten(x)
 
         # Update first moment
         if self.fm is None:

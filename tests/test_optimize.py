@@ -22,7 +22,7 @@ log.getLogger('defaults')
 from defaults import pennylane as qml, BaseTest
 
 from pennylane import numpy as np
-from pennylane.utils import _flatten
+from pennylane.utils import flatten
 from pennylane.optimize import (GradientDescentOptimizer,
                               MomentumOptimizer,
                               NesterovMomentumOptimizer,
@@ -198,7 +198,7 @@ class BasicTest(BaseTest):
         nested = self.sgd_opt.step(self.hybrid_fun_nested, self.nested_list)
         flat = self.sgd_opt.step(self.hybrid_fun_flat, self.flat_list)
 
-        self.assertAllAlmostEqual(flat, list(_flatten(nested)), delta=self.tol)
+        self.assertAllAlmostEqual(flat, list(flatten(nested)), delta=self.tol)
 
     def test_array_and_list_return_same_update(self):
         """Tests that gradient descent optimizer has the same output for

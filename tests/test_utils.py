@@ -19,12 +19,13 @@ import unittest
 import logging as log
 log.getLogger('defaults')
 
-import autograd
-from autograd import numpy as np
+import autograd.numpy as np
+
+import collections
 
 from defaults import pennylane as qml, BaseTest
 
-from pennylane.utils import _flatten, _unflatten, unflatten
+from pennylane.utils import flatten, unflatten
 
 a = np.linspace(-1, 1, 64)
 a_shapes = [(64,),
@@ -44,17 +45,41 @@ b_shapes = [(8,), (8, 1), (4, 2), (2, 2, 2), (2, 1, 2, 1, 2)]
 class FlattenTest(BaseTest):
     """Tests flatten and unflatten.
     """
-    def test_depth_first(self):
-        self.assertEqual(list(_flatten([[1, 2, [3, 4]], 5])), [1, 2, 3, 4, 5])
-        self.assertEqual(list(_unflatten([1, 2, 3, 4, 5], [[1, 2, [3, 4]], 5])), [[1, 2, [3, 4]], 5])
+    def test_depth_first_ragged_list(self):
+        r = list(range(5))
+        a = [[0, 1, [2, 3]], 4]
+        self.assertEqual(list(flatten(a)), r)
+        self.assertEqual(list(unflatten(r, a)), a)
+
+    def test_depth_first_ragged_np_array(self):
+        r = np.array(range(5))
+        a = np.array([np.array([0, 1, np.array([2, 3], dtype=object)], dtype=object), 4], dtype=object)
+        self.assertAllEqual(list(flatten(a)), list(r))
+        a_unflattened = unflatten(r, a)
+
+        #numpy cannot compare jagged arrays with np.all() so we code something recursive ourselves
+        def recursive_np_array_equal(a, b):
+            if type(a) != type(b):
+                return False
+            a_len = a.size if isinstance(a, np.ndarray) else len(a)
+            b_len = b.size if isinstance(b, np.ndarray) else len(b)
+            if a_len != b_len:
+                return False
+            if isinstance(a, collections.Iterable) and a_len > 1:
+                return np.all([recursive_np_array_equal(a[i], b[i]) for i in range(a_len)])
+
+            return a == b
+
+        assert(recursive_np_array_equal(unflatten(r, a), a))
+
 
     def test_flatten_list(self):
-        "Tests that _flatten successfully flattens multidimensional arrays."
+        "Tests that flatten successfully flattens multidimensional arrays."
         self.logTestName()
         flat = a
         for s in a_shapes:
             reshaped = list(np.reshape(flat, s))
-            flattened = np.array([x for x in _flatten(reshaped)])
+            flattened = np.array([x for x in flatten(reshaped)])
 
             self.assertEqual(flattened.shape, flat.shape)
             self.assertAllEqual(flattened, flat)
@@ -80,12 +105,12 @@ class FlattenTest(BaseTest):
 
 
     def test_flatten_np_array(self):
-        "Tests that _flatten successfully flattens multidimensional arrays."
+        "Tests that flatten successfully flattens multidimensional arrays."
         self.logTestName()
         flat = a
         for s in a_shapes:
             reshaped = np.reshape(flat, s)
-            flattened = np.array([x for x in _flatten(reshaped)])
+            flattened = np.array([x for x in flatten(reshaped)])
 
             self.assertEqual(flattened.shape, flat.shape)
             self.assertAllEqual(flattened, flat)

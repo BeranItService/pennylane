@@ -14,7 +14,7 @@
 """Root mean square propagation optimizer"""
 
 import autograd.numpy as np
-from pennylane.utils import _flatten, unflatten
+from pennylane.utils import flatten, unflatten
 from .adagrad import AdagradOptimizer
 
 
@@ -60,8 +60,8 @@ class RMSPropOptimizer(AdagradOptimizer):
             array: the new values :math:`x^{(t+1)}`
         """
 
-        grad_flat = list(_flatten(grad))
-        x_flat = _flatten(x)
+        grad_flat = list(flatten(grad))
+        x_flat = flatten(x)
 
         if self.accumulation is None:
             self.accumulation = [(1 - self.decay) * g*g for g in grad_flat]

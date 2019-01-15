@@ -14,7 +14,7 @@
 """Adagrad optimizer"""
 
 import autograd.numpy as np
-from pennylane.utils import _flatten, unflatten
+from pennylane.utils import flatten, unflatten
 from .gradient_descent import GradientDescentOptimizer
 
 
@@ -63,8 +63,8 @@ class AdagradOptimizer(GradientDescentOptimizer):
             array: the new values :math:`x^{(t+1)}`
         """
 
-        x_flat = _flatten(x)
-        grad_flat = list(_flatten(grad))
+        x_flat = flatten(x)
+        grad_flat = list(flatten(grad))
 
         if self.accumulation is None:
             self.accumulation = [g*g for g in grad_flat]

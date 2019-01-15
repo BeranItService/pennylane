@@ -14,7 +14,7 @@
 """Gradient descent optimizer"""
 
 import autograd
-from pennylane.utils import _flatten, unflatten
+from pennylane.utils import flatten, unflatten
 
 
 class GradientDescentOptimizer(object):
@@ -90,8 +90,8 @@ class GradientDescentOptimizer(object):
             array: the new values :math:`x^{(t+1)}`
         """
 
-        x_flat = _flatten(x)
-        grad_flat = _flatten(grad)
+        x_flat = flatten(x)
+        grad_flat = flatten(grad)
 
         x_new_flat = [e - self.stepsize * g for g, e in zip(grad_flat, x_flat)]
 

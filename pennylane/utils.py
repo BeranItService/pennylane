@@ -27,7 +27,7 @@ across the PennyLane submodules.
     <h3>Summary</h3>
 
 .. autosummary::
-    _flatten
+    flatten
     _unflatten
     unflatten
 
@@ -43,7 +43,7 @@ import autograd.numpy as np
 from .variable  import Variable
 
 
-def _flatten(x):
+def flatten(x):
     """Iterate through an arbitrarily nested structure, flattening it in depth-first order.
 
     See also :func:`_unflatten`.
@@ -54,12 +54,11 @@ def _flatten(x):
     Yields:
         other: elements of x in depth-first order
     """
-    print("_flatten("+str(x)+")")
     if isinstance(x, np.ndarray):
-        yield from _flatten(x.flat)  # should we allow object arrays? or just "yield from x.flat"?
+        yield from flatten(x.flat)  # should we allow object arrays? or just "yield from x.flat"?
     elif isinstance(x, collections.Iterable) and not isinstance(x, (str, bytes)):
         for item in x:
-            yield from _flatten(item)
+            yield from flatten(item)
     else:
         yield x
 
@@ -67,7 +66,7 @@ def _flatten(x):
 def _unflatten(flat, model):
     """Restores an arbitrary nested structure to a flattened iterable.
 
-    See also :func:`_flatten`.
+    See also :func:`flatten`.
 
     Args:
         flat (array): 1D array of items
@@ -77,8 +76,7 @@ def _unflatten(flat, model):
         (other, array): first elements of flat arranged into the nested
         structure of model, unused elements of flat
     """
-    print("_unflatten("+str(flat)+", "+str(model)+")")
-    if isinstance(model, np.ndarray):
+    if isinstance(model, np.ndarray) and model.dtype != object:
         idx = model.size
         res = np.array(flat)[:idx].reshape(model.shape)
         return res, flat[idx:]
@@ -87,6 +85,8 @@ def _unflatten(flat, model):
         for x in model:
             val, flat = _unflatten(flat, x)
             res.append(val)
+        if isinstance(model, np.ndarray):
+            res = np.array(res, dtype=model.dtype)
         return res, flat
     elif isinstance(model, (numbers.Number, Variable)):
         return flat[0], flat[1:]

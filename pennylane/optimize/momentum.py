@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Momentum optimizer"""
-from pennylane.utils import _flatten, unflatten
+from pennylane.utils import flatten, unflatten
 from .gradient_descent import GradientDescentOptimizer
 
 
@@ -55,8 +55,8 @@ class MomentumOptimizer(GradientDescentOptimizer):
             array: the new values :math:`x^{(t+1)}`
         """
 
-        grad_flat = _flatten(grad)
-        x_flat = _flatten(x)
+        grad_flat = flatten(grad)
+        x_flat = flatten(x)
 
         if self.accumulation is None:
             self.accumulation = [self.stepsize * g for g in grad_flat]

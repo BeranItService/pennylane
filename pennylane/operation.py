@@ -114,7 +114,7 @@ import logging as log
 import autograd.numpy as np
 
 from .qnode import QNode, QuantumFunctionError
-from .utils import _flatten, _unflatten
+from .utils import flatten, unflatten
 from .variable import Variable
 
 log.getLogger()
@@ -352,9 +352,9 @@ class Operation(abc.ABC):
         Returns:
             list[float]: parameter values
         """
-        temp = list(_flatten(self.params))
+        temp = list(flatten(self.params))
         temp_val = [self.check_domain(x.val, True) if isinstance(x, Variable) else x for x in temp]
-        return _unflatten(temp_val, self.params)[0]
+        return unflatten(temp_val, self.params)
 
     def queue(self):
         """Append the operation to a QNode queue."""

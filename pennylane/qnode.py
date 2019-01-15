@@ -145,7 +145,7 @@ import autograd.builtins
 
 import pennylane.operation
 from .variable  import Variable
-from .utils import _flatten, unflatten
+from .utils import flatten, unflatten
 
 
 log.getLogger()
@@ -257,7 +257,7 @@ class QNode:
         self.ev = []  # temporary queue for EVs
 
         # flatten the args, replace each with a Variable instance with a unique index
-        temp = [Variable(idx) for idx, val in enumerate(_flatten(args))]
+        temp = [Variable(idx) for idx, val in enumerate(flatten(args))]
         self.num_variables = len(temp)
 
         # arrange the newly created Variables in the nested structure of args
@@ -275,7 +275,7 @@ class QNode:
         # warp each keyword argument as a Variable
         kwarg_variables = {}
         for key, val in keyword_values.items():
-            temp = [Variable(idx, name=key) for idx, _ in enumerate(_flatten(val))]
+            temp = [Variable(idx, name=key) for idx, _ in enumerate(flatten(val))]
             kwarg_variables[key] = unflatten(temp, val)
 
         # set up the context for Operation entry
@@ -347,7 +347,7 @@ class QNode:
         # map each free variable to the operations which depend on it
         self.variable_ops = {}
         for k, op in enumerate(self.ops):
-            for idx, p in enumerate(_flatten(op.params)):
+            for idx, p in enumerate(flatten(op.params)):
                 if isinstance(p, Variable):
                     if p.name is None: # ignore keyword arguments
                         self.variable_ops.setdefault(p.idx, []).append((k, idx))
@@ -479,8 +479,8 @@ class QNode:
 
         # temporarily store keyword arguments
         keyword_values = {}
-        keyword_values.update({k: np.array(list(_flatten(v))) for k, v in self.keyword_defaults.items()})
-        keyword_values.update({k: np.array(list(_flatten(v))) for k, v in kwargs.items()})
+        keyword_values.update({k: np.array(list(flatten(v))) for k, v in self.keyword_defaults.items()})
+        keyword_values.update({k: np.array(list(flatten(v))) for k, v in kwargs.items()})
 
         # Try and insert kwargs-as-positional back into the kwargs dictionary.
         # NOTE: this works, but the creation of new, temporary arguments
@@ -491,11 +491,11 @@ class QNode:
         #     if idx not in self.keyword_positions:
         #     positional.append(v)
         #     else:
-        #         kwargs_as_position[self.keyword_positions[idx]] = np.array(list(_flatten(v)))
+        #         kwargs_as_position[self.keyword_positions[idx]] = np.array(list(flatten(v)))
         # keyword_values.update(kwargs_as_position)
 
         # temporarily store the free parameter values in the Variable class
-        Variable.free_param_values = np.array(list(_flatten(args)))
+        Variable.free_param_values = np.array(list(flatten(args)))
         Variable.kwarg_values = keyword_values
 
         self.device.reset()
@@ -516,8 +516,8 @@ class QNode:
         """
         # temporarily store keyword arguments
         keyword_values = {}
-        keyword_values.update({k: np.array(list(_flatten(v))) for k, v in self.keyword_defaults.items()})
-        keyword_values.update({k: np.array(list(_flatten(v))) for k, v in kwargs.items()})
+        keyword_values.update({k: np.array(list(flatten(v))) for k, v in self.keyword_defaults.items()})
+        keyword_values.update({k: np.array(list(flatten(v))) for k, v in kwargs.items()})
 
         # temporarily store the free parameter values in the Variable class
         Variable.free_param_values = args
@@ -581,7 +581,7 @@ class QNode:
             # construct the circuit
             self.construct(params, **kwargs)
 
-        flat_params = np.array(list(_flatten(params)))
+        flat_params = np.array(list(flatten(params)))
 
         if which is None:
             which = range(len(flat_params))
