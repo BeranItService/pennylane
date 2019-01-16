@@ -57,10 +57,12 @@ class FlattenTest(BaseTest):
             b = list(b)
         if isinstance(a, collections.Iterable) or isinstance(b, collections.Iterable):
             if type(a) != type(b):
+                print("returning False because type(a)="+str(type(a))+"!="+str(type(b))+"=type(b)")
                 return False
             a_len = a.size if isinstance(a, np.ndarray) else len(a)
             b_len = b.size if isinstance(b, np.ndarray) else len(b)
             if a_len != b_len:
+                print("returning False because a_len="+str(a_len)+"!="+str(b_len)+"=b_len")
                 return False
             if a_len > 1:
                 return np.all([self.mixed_iterable_equal(a[i], b[i]) for i in range(a_len)])
@@ -76,10 +78,11 @@ class FlattenTest(BaseTest):
         assert(self.mixed_iterable_equal(flatten(a), r))#flatten() returns a generator here and this is what we want
         assert(self.mixed_iterable_equal(unflatten(r, a), a))
 
+
     def test_depth_first_jagged_mixed(self):
-        r = np.array(range(9))
-        a = [np.array([np.array([0]), np.array([1, 2, 3]), np.array([4, 5])]), 6, np.array([7, 8])]
-        assert(self.mixed_iterable_equal(list(flatten(a)), list(r)))
+        r = np.array(range(17))
+        a = [np.array([np.array([0]), np.array([1, 2, 3]), np.array([4, 5])]), 6, np.array([7, 8]), (9, 10), [11, (12, np.array(13)), np.array([(14, ), 15, np.array(16)])]]
+        assert(self.mixed_iterable_equal(list(flatten(a)), list(r)))#todo: remove list() around flatten?
 
         a_unflattened = unflatten(r, a)
         assert(self.mixed_iterable_equal(a_unflattened, a))

@@ -77,37 +77,30 @@ def _unflatten(flat, model):
         structure of model, unused elements of flat
     """
     print("_unflatten("+str(flat)+", "+str(model)+")")
-    # if isinstance(model, np.ndarray) and model.shape == ():
-    #     model = (float)(model.item())
     if isinstance(model, np.ndarray) and model.shape == ():
-        print("branch0: x")
-        print("returning0: "+str(flat[0]))
-        return flat[0], flat[1:]
+        print("branch0: flat[0] is of type "+str(type(flat[0])))
+        print("returning0: "+str(np.array(flat[0]))+" of type "+str(type(np.array(flat[0]))))
+        return np.array(flat[0]), flat[1:]
     elif isinstance(model, np.ndarray) and model.dtype != object and model.shape != ():
         print("branch1: isinstance(model, np.ndarray) and model.dtype != object")
         idx = model.size
         res = np.array(flat)[:idx].reshape(model.shape)
-        # if res.shape==():#not isinstance(res.item(), Variable) and
-        #     print("type(res.item())="+str(type(res.item())))
-        #     res = res.item()#(float)(res)
         print("returning1: "+str(res))
         return res, flat[idx:]
-    #elif isinstance(model, np.ndarray) and model.shape == ():
-    #    print("isinstance(model, np.ndarray) and model.shape == ()")
-    #    return _unflatten(flat, model.item())
     elif isinstance(model, collections.Iterable) and (not isinstance(model, np.ndarray) or model.shape != ()):
-        print("branch2: isinstance(model, collections.Iterable)")
+        print("branch2: isinstance(model, collections.Iterable) model="+str(model))
         res = []
         for x in model:
+            print("calling _unflatten with x="+str(x)+" of type="+str(type(x)))
             val, flat = _unflatten(flat, x)
             if isinstance(x, np.ndarray) and x.shape != () and not isinstance(model, tuple):
-                print("Got_here: x="+str(x)+" model="+str(model))
+                print("Got_here1: x="+str(x)+" model="+str(model))
                 val = np.array(val)
-            print("Appending: "+str(val))
+            if isinstance(x, tuple) and len(x) != 0 and not isinstance(model, tuple):
+                print("Got_here2: x="+str(x)+" model="+str(model))
+                val = tuple(val)
+            print("Appending: "+str(val)+" of type "+str(type(val)))
             res.append(val)
-        #if isinstance(model, np.ndarray):
-            #print("isinstance(model, np.ndarray)")
-            #res = np.array(res)
         print("returning2: "+str(res))
         return res, flat
     elif isinstance(model, (numbers.Number, Variable)):
