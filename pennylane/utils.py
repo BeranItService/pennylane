@@ -90,18 +90,33 @@ def _unflatten(flat, model):
     elif isinstance(model, collections.Iterable) and (not isinstance(model, np.ndarray) or model.shape != ()):
         print("branch2: isinstance(model, collections.Iterable) model="+str(model))
         res = []
+        #res_contains_objects = False
         for x in model:
             print("calling _unflatten with x="+str(x)+" of type="+str(type(x)))
             val, flat = _unflatten(flat, x)
-            if isinstance(x, np.ndarray) and x.shape != () and not isinstance(model, tuple):
+            if isinstance(x, np.ndarray) and x.shape != () and not isinstance(model, (tuple, np.ndarray)):
                 print("Got_here1: x="+str(x)+" model="+str(model))
                 val = np.array(val)
             if isinstance(x, tuple) and len(x) != 0 and not isinstance(model, tuple):
                 print("Got_here2: x="+str(x)+" model="+str(model))
                 val = tuple(val)
             print("Appending: "+str(val)+" of type "+str(type(val)))
+            # if np.array(val).dtype == object:
+            #     print("got a val np can only handle as object, namely val="+str(val))
+            #     res_contains_objects = True
             res.append(val)
-        print("returning2: "+str(res))
+
+        print("res is now "+str(res)+" with 0th element of type "+str(type(res[0])))
+
+        if isinstance(model, np.ndarray) and model.shape != ():
+            try:
+                res = np.array(res)
+            except ValueError:
+                res = np.array(res, dtype=object)
+        if isinstance(model, tuple):
+            res = tuple(res)
+
+        print("returning2: "+str(res)+" with type(res)="+str(type(res))+" and res.dtype="+str(res.dtype if isinstance(res, np.ndarray) else "none")+" while model="+str(model)+" and model.dtype="+str(model.dtype if isinstance(model, np.ndarray) else "none"))
         return res, flat
     elif isinstance(model, (numbers.Number, Variable)):
         print("branch3: x")
